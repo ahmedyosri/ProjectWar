@@ -341,7 +341,7 @@ public class Navigate : BTTask
     }
     public override BT_Status Run()
     {
-        print(m_Entity.name + ": mn hena :" + navigationTarget);
+        //print(m_Entity.name + ": mn hena :" + navigationTarget);
         switch (myUnit.m_NavigationStatus)
         {
             case NavigationStatus.Normally:

@@ -10,7 +10,7 @@ public class Pathfinding : MonoBehaviour {
     static AStar pathfinder = new AStar();
     static bool isInited;
 
-    int m_MipMapLevel = 2;
+    int m_MipMapLevel = 1;
 
 	// Use this for initialization
 	void Start () {
@@ -133,6 +133,23 @@ public class Pathfinding : MonoBehaviour {
         return worldPath;
     }
 
+    public List<Vector3> GetExploredPath() {
+        List<int> foundPath = new List<int>();
+        List<Vector3> worldPath = new List<Vector3>();
+
+        foundPath = pathfinder.GetExploredNodes();
+
+        if (foundPath == null)
+            return null;
+
+        foreach (int i in foundPath)
+        {
+            worldPath.Add(IdxToWorld(i));
+        }
+
+        return worldPath;
+    }
+
     #region converter wrappers
 
     public Vector2 WorldToArrayPos(Vector3 worldPos)
@@ -201,41 +218,55 @@ public class Edge
 public class Node
 {
     public int id;
-    public List<int> neighbors;
     public List<Edge> edges;
-
+    private List<KeyValuePair<Node, float>> neighbors;
 
     public int prev;
-    public float minDist, estimated, totalEstimated;
+    public float costSoFar, estimated, totalEstimated;
 
     public Node()
     {
         id = -1;
-        neighbors = new List<int>();
+        neighbors = new List<KeyValuePair<Node, float>>();
         edges = new List<Edge>();
 
         prev = -1;
-        estimated = totalEstimated = minDist = float.MaxValue;
+        estimated = totalEstimated = costSoFar = float.MaxValue;
     }
 
     public Node(int nodeId)
     {
         id = nodeId;
-        neighbors = new List<int>();
+        neighbors = new List<KeyValuePair<Node, float>>();
         edges = new List<Edge>();
 
         prev = -1;
-        estimated = totalEstimated = minDist = float.MaxValue;
+        estimated = totalEstimated = costSoFar = float.MaxValue;
     }
 
     public Node(int nodeId, List<Edge> nodeEdges)
     {
         id = nodeId;
-        neighbors = new List<int>();
+        neighbors = new List<KeyValuePair<Node, float>>();
         edges = nodeEdges;
 
         prev = -1;
-        estimated = totalEstimated = minDist = float.MaxValue;
+        estimated = totalEstimated = costSoFar = float.MaxValue;
+    }
+
+    public void UpdateTotalEstimated()
+    {
+        totalEstimated = costSoFar + estimated;
+    }
+
+    public void AddNeighbor(Node nbr, float nbrDistance = 1)
+    {
+        neighbors.Add(new KeyValuePair<Node, float>(nbr, nbrDistance));
+    }
+
+    public List<KeyValuePair<Node, float>> Neighbors()
+    {
+        return neighbors;
     }
 
 };
@@ -260,24 +291,32 @@ public class Graph
         edges.Add(newEdge);
         nodes[newEdge.a].edges.Add(newEdge);
         nodes[newEdge.b].edges.Add(newEdge);
+        nodes[newEdge.a].AddNeighbor(nodes[newEdge.b]);
+        nodes[newEdge.b].AddNeighbor(nodes[newEdge.a]);
     }
 };
 
 class AStar : MonoBehaviour
 {
+    const float kTileBasedHeuristic = 1.001f;
+
     Graph graph;
     int c, iFrom, iTo;
-    List<int> resultPath;
+    List<int> resultPath, explored;
+    List<bool> isOpened;
     System.Threading.Thread m_Thread;
     System.Threading.ThreadStart m_ThreadStarter;
 
     public AStar()
     {
         graph = new Graph();
+        isOpened = new List<bool>();
+        resultPath = new List<int>();
     }
 
     public void AddNode(Node newNode){
         graph.AddNode(newNode);
+        isOpened.Add(false);
     }
 
     public void AddEdge(Edge newEdge)
@@ -287,7 +326,9 @@ class AStar : MonoBehaviour
 
     void CalculatePath()
     {
+        // The flow of the algorithm require it to be in 3 states (null: not searched yet, Empty: path not found, List: path found)
         resultPath = null;
+
         CalculatePath(iFrom, iTo);
         List<int> path = new List<int>();
         int tracker = iTo;
@@ -301,97 +342,74 @@ class AStar : MonoBehaviour
     }
     void CalculatePath(int from, int to)
     {
-        List<Node> visited, unvisited;
-
-        print("started");
-
-        Node tmpNode, currNode;
-        int tmpId;
-        float tmpDist;
-        Vector3 tmpPos, targetPos;
-
-        int maxVisited = -1;
-
-        visited = new List<Node>();
-        unvisited = new List<Node>();
-        currNode = new Node();
-        targetPos = InfluenceMaps.IdxToWorld(to);
-
+        List<Node> opened = new List<Node>();
+        explored = new List<int>();
+        Vector3 frmPos, toPos;
+        Node tmpNode = graph.nodes[from];
 
         for (int i = 0; i < graph.nodes.Count; i++)
+            isOpened[i] = false;
+
+
+        toPos = InfluenceMaps.IdxToWorld(to);
+
+        foreach (Node n in graph.nodes)
         {
-            tmpNode = graph.nodes[i];
-            tmpNode.prev = -1;
-            tmpNode.minDist = float.MaxValue;
-            tmpPos = InfluenceMaps.IdxToWorld(tmpNode.id);
-            tmpNode.estimated = Mathf.Abs(tmpPos.x - targetPos.x) + Mathf.Abs(tmpPos.z-targetPos.z);
+            frmPos = InfluenceMaps.IdxToWorld(n.id);
+
+            n.prev = -1;
+            n.costSoFar = float.MaxValue;
+            n.estimated = ( Mathf.Abs(frmPos.x - toPos.x) + Mathf.Abs(frmPos.z - toPos.z) ) * (float)kTileBasedHeuristic;
+            n.UpdateTotalEstimated();
         }
-        c = 0;
 
-        tmpNode = graph.nodes[from];
-        tmpNode.minDist = 0;
-        tmpNode.totalEstimated = tmpNode.estimated;
 
-        unvisited.Add(graph.nodes[from]);
-        
+        tmpNode.costSoFar = 0;
+        tmpNode.UpdateTotalEstimated();
 
-        while (unvisited.Count > 0 && c++<20000)
+        opened.Add(tmpNode);
+        isOpened[from] = true;
+
+        float tmpDist = 0, nbrDist = 0;
+        Node pCurrNode = null, pNbrNode = null;
+
+        while (opened.Count > 0)
         {
-            //print(">> " + c + " " + unvisited.Count);
-            maxVisited = Mathf.Max(visited.Count, maxVisited);
-            tmpDist = int.MaxValue;
+            opened.Sort((n1, n2) => (n2.totalEstimated.CompareTo(n1.totalEstimated)));
+            pCurrNode = opened[opened.Count - 1];
+            opened.RemoveAt(opened.Count - 1);
 
-
-            for (int i = 0; i < unvisited.Count; i++)
-            {
-                if (unvisited[i].totalEstimated < tmpDist)
-                {
-                    currNode = unvisited[i];
-                    tmpDist = unvisited[i].totalEstimated;
-                    tmpId = i;
-                }
-            }
-
-
-            if (currNode.id == to)
+            if (pCurrNode.id == to)
                 break;
 
-            unvisited.Remove(currNode);
-            visited.Add(currNode);
+            //Add to explored nodes list
+            explored.Add(pCurrNode.id);
+
+            foreach(KeyValuePair<Node, float> n in pCurrNode.Neighbors()){
+                pNbrNode = n.Key;
+                nbrDist = n.Value;
+                tmpDist = pCurrNode.costSoFar + nbrDist + pNbrNode.estimated;
 
 
-            for (int i = 0; i < currNode.edges.Count; i++)
-            {
-                tmpId = (currNode.id == currNode.edges[i].a ? currNode.edges[i].b : currNode.edges[i].a);
-                tmpDist = currNode.minDist + currNode.edges[i].weight;
-                tmpNode = graph.nodes[tmpId];
+                if (tmpDist < pNbrNode.totalEstimated)
+                {
+                    pNbrNode.prev = pCurrNode.id;
+                    pNbrNode.costSoFar = pCurrNode.costSoFar + nbrDist;
+                    pNbrNode.UpdateTotalEstimated();
 
-                if(unvisited.Contains(tmpNode)){
-                    if(tmpDist < tmpNode.minDist){
-                        tmpNode.minDist = tmpDist;
-                        tmpNode.totalEstimated = tmpNode.minDist+tmpNode.estimated;
-                        tmpNode.prev = currNode.id;
+                    if (!isOpened[pNbrNode.id])
+                    {
+                        isOpened[pNbrNode.id] = true;
+                        opened.Add(pNbrNode);
+                        
                     }
-                }
-                else if (visited.Contains(tmpNode)){
-                    if (tmpDist < tmpNode.minDist){
-                        visited.Remove(tmpNode);
-                        unvisited.Add(tmpNode);
-                        tmpNode.totalEstimated = tmpNode.minDist+tmpNode.estimated;
-                        tmpNode.minDist = tmpDist;
-                        tmpNode.prev = currNode.id;
-                    }
-                }
-                else{
-                    tmpNode.minDist = tmpDist;
-                    unvisited.Add(tmpNode);
-                    tmpNode.totalEstimated = tmpNode.minDist+tmpNode.estimated;
-                    tmpNode.prev = currNode.id;
+
                 }
             }
+
         }
 
-        print("finished");
+            print("finished");
 
     }
 
@@ -419,4 +437,8 @@ class AStar : MonoBehaviour
         return resultPath;
     }
 
+    public List<int> GetExploredNodes()
+    {
+        return explored;
+    }
 };
