@@ -99,7 +99,8 @@ public class ArmyUnit : StateMachine {
                 {
                     UpdatePathTarget();
 
-                    GameObject.Find("PathfindingGrid").SendMessage("Visualize", currPath);
+                    List<Vector3> exp = pathfinder.GetExploredPath();
+                    GameObject.Find("PathfindingGrid").SendMessage("Visualize", exp);
                     for (int i = 0; i < currPath.Count; i++) //Make sure the path points are on the correct y
                     {
                         Vector3 tmppos = currPath[i];

@@ -133,6 +133,23 @@ public class Pathfinding : MonoBehaviour {
         return worldPath;
     }
 
+    public List<Vector3> GetExploredPath() {
+        List<int> foundPath = new List<int>();
+        List<Vector3> worldPath = new List<Vector3>();
+
+        foundPath = pathfinder.GetExploredNodes();
+
+        if (foundPath == null)
+            return null;
+
+        foreach (int i in foundPath)
+        {
+            worldPath.Add(IdxToWorld(i));
+        }
+
+        return worldPath;
+    }
+
     #region converter wrappers
 
     public Vector2 WorldToArrayPos(Vector3 worldPos)
@@ -285,7 +302,7 @@ class AStar : MonoBehaviour
 
     Graph graph;
     int c, iFrom, iTo;
-    List<int> resultPath;
+    List<int> resultPath, explored;
     List<bool> isOpened;
     System.Threading.Thread m_Thread;
     System.Threading.ThreadStart m_ThreadStarter;
@@ -326,7 +343,8 @@ class AStar : MonoBehaviour
     void CalculatePath(int from, int to)
     {
         List<Node> opened = new List<Node>();
-        Vector2 frmPos, toPos;
+        explored = new List<int>();
+        Vector3 frmPos, toPos;
         Node tmpNode = graph.nodes[from];
 
         for (int i = 0; i < graph.nodes.Count; i++)
@@ -341,7 +359,7 @@ class AStar : MonoBehaviour
 
             n.prev = -1;
             n.costSoFar = float.MaxValue;
-            n.estimated = ( Mathf.Abs(frmPos.x - toPos.x) + Mathf.Abs(frmPos.y - toPos.y) ) * (float)kTileBasedHeuristic;
+            n.estimated = ( Mathf.Abs(frmPos.x - toPos.x) + Mathf.Abs(frmPos.z - toPos.z) ) * (float)kTileBasedHeuristic;
             n.UpdateTotalEstimated();
         }
 
@@ -361,20 +379,17 @@ class AStar : MonoBehaviour
             pCurrNode = opened[opened.Count - 1];
             opened.RemoveAt(opened.Count - 1);
 
-            print("========");
-
             if (pCurrNode.id == to)
                 break;
 
             //Add to explored nodes list
+            explored.Add(pCurrNode.id);
+
             foreach(KeyValuePair<Node, float> n in pCurrNode.Neighbors()){
                 pNbrNode = n.Key;
                 nbrDist = n.Value;
                 tmpDist = pCurrNode.costSoFar + nbrDist + pNbrNode.estimated;
 
-                print(pNbrNode.id + " | " + nbrDist + " | ");
-                print(pNbrNode.totalEstimated);
-                print(pNbrNode.estimated);
 
                 if (tmpDist < pNbrNode.totalEstimated)
                 {
@@ -386,12 +401,7 @@ class AStar : MonoBehaviour
                     {
                         isOpened[pNbrNode.id] = true;
                         opened.Add(pNbrNode);
-                        opened.Sort((n1, n2) => n2.totalEstimated.CompareTo(n1.totalEstimated));
                         
-                    }
-                    else
-                    {
-                        //opened.Sort((n1, n2) => n2.totalEstimated.CompareTo(n1.totalEstimated));
                     }
 
                 }
@@ -427,4 +437,8 @@ class AStar : MonoBehaviour
         return resultPath;
     }
 
+    public List<int> GetExploredNodes()
+    {
+        return explored;
+    }
 };
