@@ -108,7 +108,7 @@ public class ArmyUnit : StateMachine {
                     m_State++;
                 }
                 else
-                    print("still");
+                {}// print("still");
                 break;
 
             case 2: //NAVIGATING
