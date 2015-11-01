@@ -110,27 +110,3 @@ public class StateMachine : MonoBehaviour
     protected float m_Timer = 0;
     protected int m_State = 0;
 }
-
-//public class InfluenceUnit
-//{
-//    Vector3 worldPos;
-//    Color color;
-
-//    public InfluenceUnit()
-//    {
-//        worldPos = Vector3.zero;
-//        color = Color.black;
-//    }
-
-//    public InfluenceUnit(Vector3 pos)
-//    {
-//        worldPos = pos;
-//        color = Color.black;
-//    }
-
-//    public InfluenceUnit(Vector3 pos, Color clr)
-//    {
-//        worldPos = pos;
-//        color = clr;
-//    }
-//}

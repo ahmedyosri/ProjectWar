@@ -4,13 +4,12 @@ using System.Collections;
 public class TacticalGrid : StateMachine
 {
 
+    Color32[] m_Bitmap;
     GameObject[] m_ArmiesUnits;
     public Color[] m_ArmiesColors;
 
-    Color32[] m_Bitmap;
     Vector3 tmpPos;
     GameObject tmpObj;
-    int I, J;
 
 	// Use this for initialization
 	void Start () {
@@ -38,6 +37,7 @@ public class TacticalGrid : StateMachine
 
             case 2:
                 UpdateBitMap();
+                GameObject.Find("GridVisualizer").SendMessage("SetColor", m_Bitmap);
                 m_Timer = Time.time + 3;
                 m_State = 1;
                 break;
@@ -52,41 +52,38 @@ public class TacticalGrid : StateMachine
             for (int j = 0; j < m_ArmiesUnits[i].transform.childCount; j++)
             {
                 tmpObj = m_ArmiesUnits[i].transform.GetChild(j).gameObject;
-                if (!tmpObj.active)
+                if (!tmpObj.activeSelf)
                     continue;
-                tmpPos = m_ArmiesUnits[i].transform.GetChild(j).position;
-                J = (int)((tmpPos.x/InfluenceMaps.wrldMapLength)*InfluenceMaps.inflMapLength);
-                I = (int)((tmpPos.z/InfluenceMaps.wrldMapLength)*InfluenceMaps.inflMapLength);
-                FillWithInfluence(I, J, ref tmpObj, m_ArmiesUnits[i].GetComponent<ArmyUnit>().armyId);
+
+                FillWithInfluence(tmpObj, m_ArmiesUnits[i].GetComponent<ArmyUnit>().armyId);
             }
         }
     }
 
-    void FillWithInfluence(int I, int J, ref GameObject NPC, int id)
+    void FillWithInfluence(GameObject NPC, int id)
     {
-        //print()
-        int radius = 2;
-        m_Bitmap[Idx(I, J)] += m_ArmiesColors[id];
+        int radius, npcIdx, tmpIdx, I, J;
+        Vector2 arrPos;
+
+        radius = 10;
+        npcIdx = InfluenceMaps.WorldToIdx(NPC.transform.position);
+        arrPos = InfluenceMaps.WorldToArrayPos(NPC.transform.position);
+        I = (int)arrPos.y;
+        J = (int)arrPos.x;
+        
+        m_Bitmap[npcIdx] += m_ArmiesColors[id];
         for (int i = I - radius; i <= I + radius; i++)
         {
             for (int j = J - radius; j <= J + radius; j++)
             {
                 if ( (i==I && j==J) || i < 0 || j < 0 || i >= InfluenceMaps.inflMapLength || j >= InfluenceMaps.inflMapLength)
                     continue;
-                m_Bitmap[Idx(i, j)] += m_ArmiesColors[id] / Mathf.Max(Mathf.Abs(i - I), Mathf.Abs(j - J));
-                if (m_Bitmap[Idx(i, j)].r == m_Bitmap[Idx(i, j)].g && m_Bitmap[Idx(i, j)].r > 0)
-                {
-                    //m_Bitmap[Idx(i, j)].r = 0;
-                    //m_Bitmap[Idx(i, j)].g = 0;
-                    //m_Bitmap[Idx(i, j)].b = 255;
-                }
+
+                tmpIdx = InfluenceMaps.ArrayPosToIdx(Vector2.up*i + Vector2.right*j);
+
+                m_Bitmap[tmpIdx] += m_ArmiesColors[id] / (Mathf.Abs(i - I)+Mathf.Abs(j - J));
             }
         }
-    }
-
-    int Idx(int I, int J)
-    {
-        return (I * InfluenceMaps.inflMapLength) + J;
     }
 
     public Color32[] GetBitmap()
