@@ -72,7 +72,7 @@ public class PathfindingMap : StateMachine {
                     //bitmapPos.y = (int)((v.z / InfluenceMaps.wrldMapLength) * InfluenceMaps.inflMapLength);
                     m_Bitmap[InfluenceMaps.WorldToIdx(v)] = Color.red;
                 }
-                GameObject.Find("GridVisualizer").SendMessage("SetColor", m_Bitmap);
+                //GameObject.Find("GridVisualizer").SendMessage("SetColor", m_Bitmap);
                 m_Timer = Time.time + 3000;
                 m_State++;
                 break;
