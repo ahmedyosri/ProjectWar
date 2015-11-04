@@ -664,6 +664,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1c9d160504775c459e95f67b6d37e6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_ArmiesUnits: []
+  m_ArmiesColors:
+  - {r: 1, g: 0, b: 0, a: .501960814}
+  - {r: 0, g: 0, b: 1, a: .501960814}
 --- !u!4 &845836262
 Transform:
   m_ObjectHideFlags: 0
@@ -1841,6 +1845,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ef1c37ade302514c9c3aa5549e52d19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ArmiesColors:
-  - {r: .509803951, g: 0, b: 0, a: .0392156877}
-  - {r: 0, g: 0, b: .509803951, a: .0392156877}

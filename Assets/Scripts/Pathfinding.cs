@@ -154,19 +154,19 @@ public class Pathfinding : MonoBehaviour {
 
     public Vector2 WorldToArrayPos(Vector3 worldPos)
     {
-        return InfMapsMgr.WorldToArrayPos(worldPos);
+        return IMapsMgr.WorldToArrayPos(worldPos);
     }
 
     public Vector3 ArrayPosToWorld(Vector2 arrayPos)
     {
-        return InfMapsMgr.ArrayPosToWorld(arrayPos);
+        return IMapsMgr.ArrayPosToWorld(arrayPos);
     }
 
 
     public int WorldToIdx(Vector3 worldPos)
     {
         int idx;
-        idx = InfMapsMgr.WorldToIdx(worldPos);
+        idx = IMapsMgr.WorldToIdx(worldPos);
         Vector2 arrPos = WorldToArrayPos(worldPos);
         arrPos.x -= arrPos.x%m_MipMapLevel;
         arrPos.y -= arrPos.y%m_MipMapLevel;
@@ -176,18 +176,18 @@ public class Pathfinding : MonoBehaviour {
 
     public Vector3 IdxToWorld(int idx)
     {
-        return InfMapsMgr.IdxToWorld(idx);
+        return IMapsMgr.IdxToWorld(idx);
     }
 
 
     public int ArrayPosToIdx(Vector2 arrayPos)
     {
-        return InfMapsMgr.ArrayPosToIdx(arrayPos);
+        return IMapsMgr.ArrayPosToIdx(arrayPos);
     }
 
     public Vector2 IdxToArrayPos(int idx)
     {
-        return InfMapsMgr.IdxToArrayPos(idx);
+        return IMapsMgr.IdxToArrayPos(idx);
     }
 
     #endregion
@@ -351,11 +351,11 @@ class AStar : MonoBehaviour
             isOpened[i] = false;
 
 
-        toPos = InfMapsMgr.IdxToWorld(to);
+        toPos = IMapsMgr.IdxToWorld(to);
 
         foreach (Node n in graph.nodes)
         {
-            frmPos = InfMapsMgr.IdxToWorld(n.id);
+            frmPos = IMapsMgr.IdxToWorld(n.id);
 
             n.prev = -1;
             n.costSoFar = float.MaxValue;

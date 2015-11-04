@@ -13,9 +13,9 @@ public class PathfindingMap : StateMachine {
 
 	// Use this for initialization
 	void Start () {
-        m_Bitmap = new Color32[InfMapsMgr.inflMapTiles];
+        m_Bitmap = new Color32[IMapsMgr.inflMapTiles];
         tmpPos = Vector3.up;
-        m_BitmapLength = InfMapsMgr.wrldMapLength / InfMapsMgr.wrldTileSize;
+        m_BitmapLength = IMapsMgr.wrldMapLength / IMapsMgr.wrldTileSize;
 	}
 	
 	// Update is called once per frame
@@ -27,8 +27,8 @@ public class PathfindingMap : StateMachine {
                 {
                     for (int x =  0; x < m_BitmapLength; x ++)
                     {
-                        tmpPos.x = x*InfMapsMgr.wrldTileSize + InfMapsMgr.wrldTileSize*0.5f;
-                        tmpPos.z = y*InfMapsMgr.wrldTileSize + InfMapsMgr.wrldTileSize*0.5f;
+                        tmpPos.x = x*IMapsMgr.wrldTileSize + IMapsMgr.wrldTileSize*0.5f;
+                        tmpPos.z = y*IMapsMgr.wrldTileSize + IMapsMgr.wrldTileSize*0.5f;
                         m_Bitmap[(y * m_BitmapLength + x)] = (m_Terrain.SampleHeight(tmpPos) > 0) ? Color.black : Color.white;
                     }
                 }
@@ -70,7 +70,7 @@ public class PathfindingMap : StateMachine {
                     //Vector2 bitmapPos;
                     //bitmapPos.x = (int)((v.x / InfluenceMaps.wrldMapLength) * InfluenceMaps.inflMapLength);
                     //bitmapPos.y = (int)((v.z / InfluenceMaps.wrldMapLength) * InfluenceMaps.inflMapLength);
-                    m_Bitmap[InfMapsMgr.WorldToIdx(v)] = Color.red;
+                    m_Bitmap[IMapsMgr.WorldToIdx(v)] = Color.red;
                 }
                 //GameObject.Find("GridVisualizer").SendMessage("SetColor", m_Bitmap);
                 m_Timer = Time.time + 3000;

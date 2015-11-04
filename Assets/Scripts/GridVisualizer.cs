@@ -10,7 +10,7 @@ public class GridVisualizer : MonoBehaviour {
 	void Start () {
         mTexture = new Texture2D(60, 60);
         GetComponent<Renderer>().material.SetTexture(0, mTexture);
-        colors = new Color32[InfMapsMgr.inflMapTiles];
+        colors = new Color32[IMapsMgr.inflMapTiles];
         mTexture.SetPixels32(colors);
 	}
 	

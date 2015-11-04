@@ -320,7 +320,7 @@ public class SelectRetreatingPoint : BTTask
             }
         }
 
-        rtrtPoint = InfMapsMgr.IdxToWorld(pathfinder.ArrayPosToIdx(rtrtarrPoint));
+        rtrtPoint = IMapsMgr.IdxToWorld(pathfinder.ArrayPosToIdx(rtrtarrPoint));
         m_Entity.GetComponent<ArmyUnit>().NavigateTo(rtrtPoint, true);
         return BT_Status.SUCCEEDED;
     }
