@@ -83,6 +83,7 @@ public class BattleBB : MonoBehaviour {
         {
             armiesUnits[g.GetComponent<ArmyUnit>().armyId].Add(g);
         }
+
         combatGroups = new List<CombatGroup>();
     }
 

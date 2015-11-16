@@ -103,7 +103,6 @@ public class PathfindingMap : StateMachine {
 
     public void Visualize(List<Vector3> visualizedPath)
     {
-        print("called");
         tmpPath = visualizedPath;
         m_State = 4;
     }

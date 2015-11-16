@@ -3,7 +3,7 @@ using System.Collections;
 
 public class GridVisualizer : MonoBehaviour {
 
-    public Color32[] colors;
+    Color32[] colors;
     Texture2D mTexture;
 
 	// Use this for initialization

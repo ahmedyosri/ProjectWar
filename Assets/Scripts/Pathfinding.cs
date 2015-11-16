@@ -338,7 +338,6 @@ class AStar : MonoBehaviour
             tracker = graph.nodes[tracker].prev;
         }
         resultPath = path;
-        print("path: " + resultPath.Count);
     }
     void CalculatePath(int from, int to)
     {
@@ -409,8 +408,6 @@ class AStar : MonoBehaviour
 
         }
 
-            print("finished");
-
     }
 
     public void GetPath(int from, int to)
@@ -421,15 +418,6 @@ class AStar : MonoBehaviour
         m_Thread = new System.Threading.Thread(m_ThreadStarter);
         m_Thread.Start();
 
-        ////CalculatePath(from, to);
-        //List<int> path = new List<int>();
-        //int tracker = to;
-        //while (tracker != from)
-        //{
-        //    path.Insert(0, tracker);
-        //    tracker = graph.nodes[tracker].prev;
-        //}
-        //return path;
     }
 
     public List<int> GetResultPath()
